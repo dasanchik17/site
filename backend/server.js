@@ -1,48 +1,54 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Настройка отправки писем (например, заявки с сайта)
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "renatdasania8@gmail.com", // Замените на ваш Gmail
-    pass: "lhez jffg zonc dcsi", // Пароль или ключ приложения
+    user: "renatdasania8@gmail.com",
+    pass: "lhez jffg zonc dcsi",
   },
 });
 
-// Обработка формы
 app.post("/send-form", (req, res) => {
-  const { name, email, message } = req.body;
+  console.log("Получены данные:", req.body);
+
+  const { name, phone, message } = req.body; // Изменил с email на phone
+
+  if (!name || !phone) {
+    return res.status(400).json({ error: "Не хватает name или phone" });
+  }
 
   const mailOptions = {
     from: "renatdasania8@gmail.com",
-    to: "renatdasania8@gmail.com", // Ваш email для заявок
+    to: "renatdasania8@gmail.com",
     subject: "Новая заявка с сайта",
-    text: `Имя: ${name}\nEmail: ${email}\nСообщение: ${message}`,
+    text: `Имя: ${name}\nТелефон: ${phone}\nСообщение: ${
+      message || "Не указано"
+    }`,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      return res.status(500).send(error.toString());
+      console.error("Ошибка отправки:", error);
+      return res.status(500).json({ error: "Ошибка при отправке письма" });
     }
-    res.status(200).send("Сообщение отправлено!");
+    console.log("Письмо отправлено:", info.response);
+    res.json({ message: "Сообщение отправлено!" });
   });
-});
-
-// Запуск сервера
-const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`Сервер запущен на http://localhost:${PORT}`);
 });
 
 app.get("/", (req, res) => {
   res.send(
     "Бэкенд работает! Теперь можно отправлять POST-запросы на /send-form"
   );
+});
+
+const PORT = 3001;
+app.listen(PORT, () => {
+  console.log(`Сервер запущен на http://localhost:${PORT}`);
 });

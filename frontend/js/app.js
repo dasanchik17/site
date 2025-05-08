@@ -1,3 +1,4 @@
+// Прокрутка к якорям
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
     e.preventDefault();
@@ -59,27 +60,6 @@ if (galleryModal) {
   });
 }
 
-// Обработчик формы контактов
-document.getElementById("contactForm").addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  const form = e.target;
-  const submitBtn = document.getElementById("submitBtn");
-
-  submitBtn.disabled = true;
-  submitBtn.innerHTML =
-    '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Отправка...';
-
-  // Здесь должен быть код для отправки данных на сервер
-  // Вместо этого мы просто эмулируем отправку
-  setTimeout(() => {
-    alert("Ваше сообщение отправлено! Мы свяжемся с вами в ближайшее время.");
-    form.reset();
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = "Отправить сообщение";
-  }, 1500);
-});
-
 // Backend часть
 async function sendForm(data) {
   try {
@@ -98,25 +78,37 @@ async function sendForm(data) {
     return await response.json();
   } catch (error) {
     console.error("Ошибка при отправке формы:", error);
-    throw error; // Можно обработать ошибку в месте вызова
+    throw error;
   }
 }
 
-// Обработчик формы
-document.querySelector("form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+// Единственный обработчик формы
+document
+  .getElementById("contactForm")
+  ?.addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-  const formData = {
-    name: e.target.name.value,
-    email: e.target.email.value,
-    message: e.target.message.value,
-  };
+    const submitBtn = document.getElementById("submitBtn");
+    const form = e.target;
 
-  try {
-    const result = await sendForm(formData);
-    alert(result.message || "Форма успешно отправлена!");
-    e.target.reset(); // Очистка формы после отправки
-  } catch (error) {
-    alert("Произошла ошибка при отправке. Проверьте консоль для деталей.");
-  }
-});
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Отправка...';
+
+      const formData = {
+        name: form.elements.name.value,
+        phone: form.elements.phone.value, // Изменил с email на phone
+        message: form.elements.message.value,
+      };
+
+      const result = await sendForm(formData);
+      alert(result.message || "Форма успешно отправлена!");
+      form.reset();
+    } catch (error) {
+      alert("Ошибка при отправке: " + error.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "Отправить сообщение";
+    }
+  });
